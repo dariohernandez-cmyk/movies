@@ -1,28 +1,37 @@
 import { Link } from "react-router-dom";
-import { FilmIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
+import { useAuth } from "../context/useAuth";
 
 export function Navigation() {
+  const { user, logout } = useAuth();
+
+  const handleLogin = () => {
+    // Redirige al login normal en tu frontend
+    window.location.href = "/login";
+  };
+
   return (
-    <nav className="flex gap-4 p-3 bg-gray-100 rounded-lg shadow-md justify-center">
-      <Link
-        to="/movies"
-        className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 
-                   text-white font-medium rounded-lg shadow hover:scale-105 hover:from-blue-600 
-                   hover:to-indigo-700 transition-transform duration-200"
-      >
-        <FilmIcon style={{ width: "50px", height: "50px" }} />
+    <nav className="flex gap-4 p-4 bg-gray-100 justify-center">
+      <Link to="/movies" className="btn btn-primary">
         Movies
       </Link>
 
-      <Link
-        to="/movies/form"
-        className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-600 
-                   text-white font-medium rounded-lg shadow hover:scale-105 hover:from-green-600 
-                   hover:to-emerald-700 transition-transform duration-200"
-      >
-        <PlusCircleIcon style={{ width: "50px", height: "50px" }} />
-        Add Movie
-      </Link>
+      {/* Mostrar Add Movie solo si hay usuario */}
+      {user && (
+        <Link to="/movies/form" className="btn btn-success">
+          Add Movie
+        </Link>
+      )}
+
+      {/* Botón Login o Logout */}
+      {!user ? (
+        <button onClick={handleLogin} className="btn btn-outline">
+          Login
+        </button>
+      ) : (
+        <button onClick={logout} className="btn btn-error">
+          Logout
+        </button>
+      )}
     </nav>
   );
 }
