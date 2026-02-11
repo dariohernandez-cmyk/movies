@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { getMovies, deleteMovie } from "../api/movies.api";
 import { useAuth } from "../context/useAuth";
 
 export function MoviesList() {
   const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true); // Añadido para mejor UX
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -12,11 +13,15 @@ export function MoviesList() {
     async function loadMovies() {
       try {
         const res = await getMovies();
-        const apiData = res.data;
-        const finalData = apiData.results || apiData;
-        setMovies(Array.isArray(finalData) ? finalData : []);
+        // EXPLICACIÓN PARA EL VIDEO: 
+        // Django REST Framework puede devolver los datos directamente [] 
+        // o dentro de un objeto si hay paginación { results: [] }
+        const data = res.data.results || res.data;
+        setMovies(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Error al cargar películas:", err);
+      } finally {
+        setLoading(false);
       }
     }
     loadMovies();
@@ -30,99 +35,100 @@ export function MoviesList() {
         setMovies(movies.filter((movie) => movie.id !== id));
       } catch (err) {
         console.error("Error al eliminar:", err);
-        alert("No se pudo eliminar la película.");
+        alert("No tienes permisos para eliminar o hubo un error en el servidor.");
       }
     }
   };
 
+  // --- Estilos ---
   const containerStyle = {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-    gap: "25px",
-    padding: "30px",
-    fontFamily: "'Segoe UI', sans-serif",
+    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+    gap: "30px",
+    padding: "40px",
   };
 
   const cardStyle = {
     backgroundColor: "#fff",
-    borderRadius: "15px",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+    borderRadius: "20px",
+    boxShadow: "0 10px 20px rgba(0,0,0,0.08)",
+    overflow: "hidden",
     display: "flex",
     flexDirection: "column",
-    border: "1px solid #eee",
-    overflow: "hidden",
+    transition: "transform 0.3s ease",
   };
 
-  const imgStyle = { width: "100%", height: "350px", objectFit: "cover", backgroundColor: "#f0f0f0" };
-
-  const buttonStyle = {
-    padding: "8px 15px",
-    borderRadius: "8px",
-    border: "none",
-    cursor: "pointer",
-    marginLeft: "5px",
-    textDecoration: "none",
-    display: "inline-block",
-    fontSize: "0.9rem",
-    fontWeight: "bold"
+  const imgStyle = {
+    width: "100%",
+    height: "400px",
+    objectFit: "cover",
+    backgroundColor: "#dfe4ea"
   };
 
   return (
-    <div style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
-      <h1 style={{ textAlign: "center", padding: "40px 0", fontSize: "2.5rem" }}>
-        🎬 Catálogo de Películas
+    <div style={{ backgroundColor: "#f4f7f6", minHeight: "100vh" }}>
+      <h1 style={{ textAlign: "center", padding: "50px 0", color: "#2f3542", fontWeight: "800" }}>
+        🎬 Catálogo de Cine
       </h1>
 
-      <div style={containerStyle}>
-        {movies.length > 0 ? (
-          movies.map((movie) => (
-            <div key={movie.id} style={cardStyle}>
-              {/* Imagen */}
-              {movie.image ? (
-                <img
-                  src={movie.image.startsWith("http") ? movie.image : `http://localhost:8000${movie.image}`}
-                  alt={movie.title}
-                  style={imgStyle}
-                />
-              ) : (
-                <div style={{ ...imgStyle, display: "flex", alignItems: "center", justifyContent: "center", color: "#999" }}>
-                  🖼️ Sin póster
-                </div>
-              )}
+      {loading ? (
+        <p style={{ textAlign: "center" }}>Cargando películas...</p>
+      ) : (
+        <div style={containerStyle}>
+          {movies.length > 0 ? (
+            movies.map((movie) => (
+              <div key={movie.id} style={cardStyle} className="movie-card">
+                {/* Lógica de Imagen Corregida */}
+                {movie.image ? (
+                  <img
+                    src={movie.image} // Django REST Framework ya suele enviar la URL completa
+                    alt={movie.title}
+                    style={imgStyle}
+                    onError={(e) => { e.target.src = "https://via.placeholder.com/400x600?text=Sin+Poster"; }}
+                  />
+                ) : (
+                  <div style={{ ...imgStyle, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    🎥 Sin Imagen
+                  </div>
+                )}
 
-              {/* Información */}
-              <div style={{ padding: "20px", flexGrow: 1 }}>
-                <h2 style={{ margin: "0 0 10px 0", color: "#333" }}>{movie.title}</h2>
-                <p style={{ color: "#666", fontSize: "0.95rem", lineHeight: "1.5" }}>
-                  {movie.description}
-                </p>
+                <div style={{ padding: "20px", flex: 1 }}>
+                  <h2 style={{ fontSize: "1.4rem", marginBottom: "10px" }}>{movie.title}</h2>
+                  <p style={{ color: "#747d8c", fontSize: "0.9rem", marginBottom: "5px" }}>
+                    <strong>Director:</strong> {movie.director || "No especificado"}
+                  </p>
+                  <p style={{ color: "#747d8c", fontSize: "0.9rem" }}>
+                    {movie.description?.substring(0, 100)}...
+                  </p>
+                </div>
+
+                {/* Laboratorio 11: Renderizado condicional basado en autenticación */}
+                {user && (
+                  <div style={{ padding: "15px", background: "#f1f2f6", display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                    <button
+                      onClick={() => navigate(`/movies/${movie.id}/edit`)}
+                      style={{ padding: "8px 15px", borderRadius: "5px", border: "none", backgroundColor: "#3742fa", color: "white", cursor: "pointer" }}
+                    >
+                      ✏️ Editar
+                    </button>
+                    <button
+                      onClick={() => handleDelete(movie.id)}
+                      style={{ padding: "8px 15px", borderRadius: "5px", border: "none", backgroundColor: "#ff4757", color: "white", cursor: "pointer" }}
+                    >
+                      🗑️ Borrar
+                    </button>
+                  </div>
+                )}
               </div>
-
-              {/* ACCIONES DE ADMINISTRADOR (Eliminar / Editar) */}
-              {user && (
-                <div style={{ padding: "15px", textAlign: "right", borderTop: "1px solid #eee", background: "#fcfcfc" }}>
-                  <button
-                    onClick={() => navigate(`/movies/${movie.id}/edit`)}
-                    style={{ ...buttonStyle, backgroundColor: "#1e90ff", color: "white" }}
-                  >
-                    ✏️ Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(movie.id)}
-                    style={{ ...buttonStyle, backgroundColor: "#ff4757", color: "white" }}
-                  >
-                    🗑️ Eliminar
-                  </button>
-                </div>
-              )}
+            ))
+          ) : (
+            <div style={{ textAlign: "center", gridColumn: "1/-1" }}>
+              <h3>No se encontraron películas.</h3>
+              <p>Intenta agregar una nueva si estás logueado.</p>
             </div>
-          ))
-        ) : (
-          <div style={{ textAlign: "center", gridColumn: "1 / -1" }}>
-            <p>No hay películas disponibles.</p>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

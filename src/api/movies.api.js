@@ -1,19 +1,27 @@
-import api from "./axios"; // Importamos la instancia que ya tiene el interceptor
+import api from "./axios"; 
 
-// Obtener todas las películas
-// Si Django devuelve paginación, recuerda que el array estará en res.data.results
+// 1. Obtener todas las películas
+
 export const getMovies = () => api.get("movies/");
 
-// Obtener una película por ID
+// 2. Obtener una película por ID
 export const getMovieById = (id) => api.get(`movies/${id}/`);
 
-// Crear película
-// Usamos el segundo argumento para pasar los datos. 
-// Axios detecta automáticamente si es FormData y pone el Content-Type correcto.
-export const createMovie = (movieData) => api.post("movies/", movieData);
+// 3. Crear película
 
-// Editar película
-export const editMovie = (id, movieData) => api.put(`movies/${id}/`, movieData);
+export const createMovie = (movieData) => api.post("movies/", movieData, {
+    headers: {
+        "Content-Type": "multipart/form-data", // Necesario para subir imágenes
+    }
+});
 
-// Eliminar película
+// 4. Editar película
+
+export const editMovie = (id, movieData) => api.put(`movies/${id}/`, movieData, {
+    headers: {
+        "Content-Type": "multipart/form-data",
+    }
+});
+
+// 5. Eliminar película
 export const deleteMovie = (id) => api.delete(`movies/${id}/`);
