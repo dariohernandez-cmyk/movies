@@ -1,224 +1,171 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { createMovie, getMovieById, editMovie } from "../api/movies.api";
-import { useAuth } from "../context/useAuth";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getMovieById, createMovie, editMovie } from "../api/movies.api";
 
 export function MoviesFormPage() {
-  const { id } = useParams(); // Si hay ID, estamos editando
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const [loading, setLoading] = useState(false);
   const [movie, setMovie] = useState({
     title: "",
-    director_name: "",
+    director: "",
     genre: "",
-    publication_year: "",
-    synopsis: "",
-    image: null,
+    release_year: "",
+    description: "",
   });
+  const [image, setImage] = useState(null);
+  const params = useParams();
+  const navigate = useNavigate();
 
-  const [preview, setPreview] = useState(null);
-
-  // Cargar datos si estamos editando
   useEffect(() => {
-    if (id) {
-      async function loadMovie() {
-        try {
-          const res = await getMovieById(id);
-          setMovie({
-            title: res.title,
-            director_name: res.director_name,
-            genre: res.genre,
-            publication_year: res.publication_year,
-            synopsis: res.synopsis,
-            image: null, // no cargamos imagen por seguridad
-          });
-        } catch (err) {
-          console.error("Error al cargar la película:", err);
-          alert("No se pudo cargar la película");
-          navigate("/movies");
-        }
+    async function loadMovie() {
+      if (params.id) {
+        const res = await getMovieById(params.id);
+        setMovie(res.data);
       }
-      loadMovie();
     }
-  }, [id, navigate]);
-
-  // Preview de imagen
-  useEffect(() => {
-    if (!movie.image) return;
-    const objectUrl = URL.createObjectURL(movie.image);
-    setPreview(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [movie.image]);
-
-  const handleChange = (e) => {
-    setMovie({ ...movie, [e.target.name]: e.target.value });
-  };
-
-  const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setMovie({ ...movie, image: e.target.files[0] });
-    }
-  };
+    loadMovie();
+  }, [params.id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    const formData = new FormData();
+    Object.keys(movie).forEach(key => formData.append(key, movie[key]));
+    if (image) formData.append("image", image);
 
     try {
-      const formData = new FormData();
-      Object.entries(movie).forEach(([key, value]) => {
-        if (value !== null && value !== "") formData.append(key, value);
-      });
-
-      if (id) {
-        await editMovie(id, formData);
+      if (params.id) {
+        await editMovie(params.id, formData);
       } else {
         await createMovie(formData);
       }
       navigate("/movies");
-    } catch (err) {
-      console.error("Error al guardar:", err);
-      alert("No se pudo guardar la película");
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error("Error al guardar:", error);
+      alert("Error al guardar la película.");
     }
   };
 
-  // 🚨 Si no hay usuario logueado, redirigir
-  useEffect(() => {
-    if (!user) navigate("/login");
-  }, [user, navigate]);
+  // --- Estilos Modernos ---
+  const formContainerStyle = {
+    maxWidth: "600px",
+    margin: "50px auto",
+    padding: "30px",
+    backgroundColor: "#ffffff",
+    borderRadius: "12px",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+    fontFamily: "'Segoe UI', Roboto, sans-serif"
+  };
+
+  const groupStyle = {
+    marginBottom: "20px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px"
+  };
+
+  const inputStyle = {
+    padding: "12px",
+    borderRadius: "8px",
+    border: "1px solid #ddd",
+    fontSize: "1rem",
+    outline: "none",
+    transition: "border-color 0.3s"
+  };
+
+  const buttonStyle = {
+    padding: "12px 20px",
+    backgroundColor: "#3742fa",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "1.1rem",
+    fontWeight: "600",
+    cursor: "pointer",
+    width: "100%",
+    marginTop: "10px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "10px"
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-200 p-6">
-      <form
-        onSubmit={handleSubmit}
-        className="card w-full max-w-lg shadow-2xl bg-base-100"
-        encType="multipart/form-data"
-      >
-        <div className="card-body space-y-6">
-          <h2 className="card-title text-3xl font-bold text-primary justify-center">
-            {id ? "✏️ Editar Película" : "🎬 Agregar Película"}
-          </h2>
-
-          {/* Título */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">Título</span>
-            </label>
+    <div style={{ backgroundColor: "#f1f2f6", minHeight: "100vh", padding: "20px" }}>
+      <div style={formContainerStyle}>
+        <h2 style={{ textAlign: "center", color: "#2f3542", marginBottom: "30px" }}>
+          {params.id ? "🎬 Editar Película" : "🎬 Agregar Nueva Película"}
+        </h2>
+        
+        <form onSubmit={handleSubmit}>
+          <div style={groupStyle}>
+            <label style={{ fontWeight: "600", color: "#57606f" }}>Título</label>
             <input
               type="text"
-              name="title"
-              placeholder="Ingrese el título"
+              placeholder="Ej: Inception"
+              style={inputStyle}
               value={movie.title}
-              onChange={handleChange}
+              onChange={(e) => setMovie({ ...movie, title: e.target.value })}
               required
-              className="input input-bordered input-primary"
             />
           </div>
 
-          {/* Director */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">Director</span>
-            </label>
-            <input
-              type="text"
-              name="director_name"
-              placeholder="Nombre del director"
-              value={movie.director_name}
-              onChange={handleChange}
-              required
-              className="input input-bordered input-primary"
-            />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+            <div style={groupStyle}>
+              <label style={{ fontWeight: "600", color: "#57606f" }}>Director</label>
+              <input
+                type="text"
+                placeholder="Nombre del director"
+                style={inputStyle}
+                value={movie.director}
+                onChange={(e) => setMovie({ ...movie, director: e.target.value })}
+              />
+            </div>
+            <div style={groupStyle}>
+              <label style={{ fontWeight: "600", color: "#57606f" }}>Género</label>
+              <input
+                type="text"
+                placeholder="Ej: Ciencia Ficción"
+                style={inputStyle}
+                value={movie.genre}
+                onChange={(e) => setMovie({ ...movie, genre: e.target.value })}
+              />
+            </div>
           </div>
 
-          {/* Género */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">Género</span>
-            </label>
-            <input
-              type="text"
-              name="genre"
-              placeholder="Género de la película"
-              value={movie.genre}
-              onChange={handleChange}
-              required
-              className="input input-bordered input-primary"
-            />
-          </div>
-
-          {/* Año de publicación */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">Año de publicación</span>
-            </label>
+          <div style={groupStyle}>
+            <label style={{ fontWeight: "600", color: "#57606f" }}>Año de Publicación</label>
             <input
               type="number"
-              name="publication_year"
               placeholder="Ej: 2026"
-              min="1800"
-              value={movie.publication_year}
-              onChange={handleChange}
-              required
-              className="input input-bordered input-primary"
+              style={inputStyle}
+              value={movie.release_year}
+              onChange={(e) => setMovie({ ...movie, release_year: e.target.value })}
             />
           </div>
 
-          {/* Sinopsis */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">Sinopsis</span>
-            </label>
+          <div style={groupStyle}>
+            <label style={{ fontWeight: "600", color: "#57606f" }}>Sinopsis</label>
             <textarea
-              name="synopsis"
-              placeholder="Descripción de la película"
-              value={movie.synopsis}
-              onChange={handleChange}
-              required
-              className="textarea textarea-bordered textarea-primary h-32"
+              placeholder="Describe brevemente la película..."
+              style={{ ...inputStyle, minHeight: "100px", resize: "vertical" }}
+              value={movie.description}
+              onChange={(e) => setMovie({ ...movie, description: e.target.value })}
             />
           </div>
 
-          {/* Imagen */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">Imagen</span>
-            </label>
+          <div style={groupStyle}>
+            <label style={{ fontWeight: "600", color: "#57606f" }}>Póster de la Película</label>
             <input
               type="file"
               accept="image/*"
-              onChange={handleImageChange}
-              className="file-input file-input-bordered file-input-primary w-full"
+              style={{ ...inputStyle, border: "1px dashed #3742fa", background: "#f8f9ff" }}
+              onChange={(e) => setImage(e.target.files[0])}
             />
-            {preview && (
-              <img
-                src={preview}
-                alt="Previsualización"
-                className="mt-3 rounded-xl shadow-md max-h-48 object-cover"
-              />
-            )}
           </div>
 
-          {/* Botón */}
-          <div className="form-control mt-6">
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary btn-lg w-full"
-            >
-              {loading
-                ? "⏳ Guardando..."
-                : id
-                ? "💾 Actualizar Película"
-                : "💾 Guardar Película"}
-            </button>
-          </div>
-        </div>
-      </form>
+          <button type="submit" style={buttonStyle}>
+            💾 {params.id ? "Actualizar Película" : "Guardar Película"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

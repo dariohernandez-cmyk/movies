@@ -1,36 +1,19 @@
-import axios from "axios";
+import api from "./axios"; // Importamos la instancia que ya tiene el interceptor
 
-// Crear instancia de axios para movies
-const moviesApi = axios.create({
-  baseURL: "http://localhost:8000/api/movies/", // Django API
-});
+// Obtener todas las películas
+// Si Django devuelve paginación, recuerda que el array estará en res.data.results
+export const getMovies = () => api.get("movies/");
 
-// Función para agregar token si existe y opcionalmente Content-Type
-const getConfig = (isMultipart = false) => {
-  const token = localStorage.getItem("token");
-  const headers = {};
+// Obtener una película por ID
+export const getMovieById = (id) => api.get(`movies/${id}/`);
 
-  if (token) headers["Authorization"] = `Token ${token}`;
-  if (isMultipart) headers["Content-Type"] = "multipart/form-data";
+// Crear película
+// Usamos el segundo argumento para pasar los datos. 
+// Axios detecta automáticamente si es FormData y pone el Content-Type correcto.
+export const createMovie = (movieData) => api.post("movies/", movieData);
 
-  return { headers };
-};
+// Editar película
+export const editMovie = (id, movieData) => api.put(`movies/${id}/`, movieData);
 
-// ------------------------------------
-// FUNCIONES API
-// ------------------------------------
-
-// Obtener todas las películas (GET, no multipart)
-export const getMovies = () => moviesApi.get("/", getConfig());
-
-// Obtener una película por ID (GET)
-export const getMovieById = (id) => moviesApi.get(`${id}/`, getConfig());
-
-// Crear película (POST, multipart)
-export const createMovie = (movie) => moviesApi.post("/", movie, getConfig(true));
-
-// Editar película (PUT, multipart)
-export const editMovie = (id, movie) => moviesApi.put(`${id}/`, movie, getConfig(true));
-
-// Eliminar película (DELETE, no multipart)
-export const deleteMovie = (id) => moviesApi.delete(`${id}/`, getConfig());
+// Eliminar película
+export const deleteMovie = (id) => api.delete(`movies/${id}/`);
