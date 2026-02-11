@@ -1,173 +1,97 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/zV6b-ZXN)
-# React: Pokédex
+React: Películas (Catálogo de Cine)
+Descripción General
+Este repositorio contiene la evolución de una aplicación de catálogo de películas completa, construida con React, Material UI y una API REST desarrollada en Django. El proyecto sigue una arquitectura de componentes reutilizables y gestión de estado global.
 
-## Descripción General
-Este repositorio contiene tres laboratorios progresivos para construir una aplicación Pokédex completa usando React, Material UI y consumo de APIs REST.
+Introducción a React, Componentes y MUI
+Objetivo
+Construir el layout de la aplicación "Películas" utilizando Material UI. Se definen los componentes base y la estructura de navegación sin consumo de datos reales.
 
----
+Requisitos técnicos
+Material UI (@mui/material, @emotion/react, @emotion/styled)
 
-## Laboratorio 9: Introducción a React, Componentes y MUI
+Estructura de componentes funcionales
 
-### Objetivo
-Construir el layout de una aplicación Pokédex utilizando React y Material UI. Se trabajará con datos simulados y se crearán componentes reutilizables.
-
-### Requisitos previos
-- Node.js y npm instalados
-- Editor de código (recomendado: VS Code)
-- Navegador actualizado (recomendado: Chrome)
-- React (usar Vite)
-
-### Requisitos técnicos
-- Material UI (@mui/material, @emotion/react, @emotion/styled)
-- Datos simulados (sin consumo de API)
-
-### Estructura del proyecto
-```
+Estructura del proyecto
 /src
   /components
-    Header.jsx
-    PokemonCard.jsx
+    Navigation.jsx
+    MoviesList.jsx
   /pages
-    App.jsx
+    MoviesPage.jsx
   /data
-    pokemons.js
+    movies_mock.js
   main.jsx
-```
+Llamadas a API REST con Axios
+Objetivo
+Integrar la comunicación con el Backend de Django para cargar las películas de forma dinámica desde la base de datos.
 
----
+Requisitos técnicos
+Axios para peticiones HTTP (GET, POST, PUT, DELETE)
 
-## Laboratorio 10: Llamadas a API REST con Axios
+Configuración de la URL base mediante variables de entorno en .env
 
-### Objetivo
-Integrar llamadas a una API REST generada en Django (laboratorios 5-8 en otro repositorio) para consumir datos de Pokémon en tiempo real.
+Nuevas características
+Consumo del endpoint /api/movies/ para el catálogo
 
-### Requisitos técnicos
-- Axios para realizar peticiones HTTP
-- Variables de entorno (.env) para configurar URLs de API
-- Servicios reutilizables para las llamadas a API
+Sincronización de datos mediante el hook useEffect
 
-### Nuevas características
-- Consumo de endpoint `/api/pokemons/` para obtener lista de Pokémon
-- Configuración de URL base de API en variables de entorno
-- Creación de servicios en `pokemonService.js`
+Manejo de respuestas de Axios (res.data) y normalización de arrays
 
-### Estructura actualizada
-```
-/src
-  /components
-    #### Tus componentes irán aquí
-  /pages
-    App.jsx
-  /services
-    #### Tus servicios irán aquí
-  .env
-  main.jsx
-```
-
-### Variables de entorno (.env)
-```
+Variables de entorno (.env)
+Fragmento de código
 VITE_API_BASE_URL=http://localhost:8000
 VITE_API_MEDIA_URL=${VITE_API_BASE_URL}/media/
-```
+Laboratorio 11: Llamadas a API REST con Axios y Gestión de Autorización
+Objetivo
+Implementar un sistema de seguridad basado en tokens para restringir las acciones de administración (Añadir, Editar y Eliminar) solo a usuarios autenticados.
 
----
+Requisitos técnicos
+Autenticación mediante Django Token Authentication o OAuth
 
-## Laboratorio 11: Llamadas a API REST con Axios y Gestión de Autorización
+Gestión de tokens en localStorage
 
-### Objetivo
-Implementar un sistema completo de autenticación OAuth con Django, incluyendo login, logout y protección de rutas.
+Interceptores de Axios para adjuntar automáticamente el header Authorization
 
-### Requisitos técnicos
-- Autenticación OAuth con Django
-- Gestión de tokens de acceso en localStorage
-- Interceptores de Axios para agregar tokens a las peticiones
-- Rutas protegidas con React Router
-- Formulario de login y creación de Pokémon
+Protección de rutas con React Router
 
-### Nuevas características
-- Página de login con autenticación OAuth (`/login`)
-- Página para agregar Pokémon (`/add-pokemon`)
-- Sistema de logout con revocación de token
-- Protección de rutas basada en autenticación
-- Conversión de imágenes a base64
-- Interceptores de Axios para autorización
+Funcionalidades Implementadas
+Navegación Condicional: Botones de "Ver Películas" y "Login" visibles por defecto; "Añadir Película" visible solo tras login.
 
-### Estructura actualizada
-```
+Acciones Protegidas: Los botones de "Editar" y "Eliminar" en cada tarjeta de película solo aparecen para usuarios logueados.
+
+Formulario Profesional: Uso de Grid, TextField y Button de MUI para la creación y edición de películas con subida de imágenes.
+
+ProtectedRoute: Componente de orden superior para evitar el acceso manual a rutas administrativas.
+
+Estructura Actualizada
 /src
+  /api
+    axios.js (Configuración e interceptores)
+    movies.api.js (Servicios CRUD)
   /components
-    Header.jsx
-    PokemonCard.jsx
+    Navigation.jsx
+    MoviesList.jsx
+    ProtectedRoute.jsx
+  /context
+    useAuth.jsx (Estado global de sesión)
   /pages
-    App.jsx
-    Login.jsx
-    AddPokemon.jsx
-  /services
-    pokemonService.js
-  .env
-  main.jsx
-```
+    MoviesPage.jsx
+    MoviesFormPage.jsx
+    LoginPage.jsx
+Instalación del proyecto
+Instalar dependencias base:
 
-### Variables de entorno (.env)
-```
-VITE_API_BASE_URL=http://localhost:8000
-VITE_API_MEDIA_URL=${VITE_API_BASE_URL}/media/
-VITE_API_CLIENT_ID=tu_client_id
-VITE_API_CLIENT_SECRET=tu_client_secret
-```
+Bash
+npm install
+Instalar Material UI e Iconos:
 
----
+Bash
+npm install @mui/material @emotion/react @emotion/styled @mui/icons-material
+Instalar Axios y Router:
 
-## Instalación del proyecto
+Bash
+npm install axios react-router-dom
+Ejecutar el servidor de desarrollo:
 
-1. **Clonar el repositorio** (este paso lo hará GitHub Classroom automáticamente).
-2. Abrir en VS Code la carpeta de tu repositorio clonado
-3. Instalar las dependencias base:
-   ```bash
-   npm install
-   ```
-4. Instalar Material UI y sus dependencias:
-   ```bash
-   npm install @mui/material @emotion/react @emotion/styled
-   ```
-5. Instalar Axios (necesario desde Laboratorio 10):
-   ```bash
-   npm install axios
-   ```
-6. Instalar React Router (necesario desde Laboratorio 11):
-   ```bash
-   npm install react-router-dom
-   ```
-
-### Comandos útiles
-- Ejecutar el servidor de desarrollo
-    ```bash
-    npm run dev
-    ```
-- Comprobar versión de dependencias
-    ```bash
-    npm list
-    ```
-- Limpiar dependencias
-    ```bash
-    rm -rf node_modules
-    npm install
-    ```
-
-### Comandos git
-- Verificar los archivos modificados
-    ```bash
-    git status
-    ```
-- Agregar archivos al área de preparación
-    ```bash
-    git add .
-    ```
-- Realizar un commit
-    ```bash
-    git commit -m "Laboratorio [9/10/11]: descripción de cambios"
-    ```
-- Enviar los cambios a github
-    ```bash
-    git push
-    ```
+Bash
+npm run dev
